@@ -11,6 +11,57 @@
 #include "fstream"
 using namespace std;
 
+TVectorD* getx(TMatrixD *A, TVectorD *b) {
+  size_t nrows = A->GetNrows();
+  size_t ncols = A->GetNcols();
+  TMatrixD L(nrows,ncols);
+  TMatrixD U(nrows,ncols);
+  TMatrixD D(nrows,ncols);
+  TVectorD *sol = new TVectorD(nrows);
+
+  for (size_t i = 0; i < nrows; i++) {
+    for (size_t j = 0; j < ncols; j++) {
+      if (i>j) {
+        L[i][j] = (*A)[i][j];
+      }
+      if (i==j) {
+        if ((*A)[i][j] == 0) {
+          D[i][j] = 0;
+        }else{
+          D[i][j] = 1./(*A)[i][j];
+        }
+      }
+      if (i<j) {
+        U[i][j] = (*A)[i][j];
+      }
+    }
+  }
+
+  double epsilon = 1e-5;
+  for (size_t x = 0; x < 100000; x++) {
+    TVectorD xk(nrows);
+    unsigned int delta = 0;
+    for (size_t i = 0; i < nrows; i++) {
+      double val = 0;
+      for (size_t j = 0; j < ncols; j++) {
+        val += -D[i][j]*(L[i][j] + U[i][j])* (*sol)[j] + D[i][j] * (*b)[j];
+      }
+      xk[i] = val;
+    }
+    for (size_t i = 0; i < nrows; i++) {
+      if (abs( (*sol)[i] - xk[i]) < epsilon) {
+        delta++;
+      }
+    }
+    (*sol) = xk;
+    if (delta == nrows) {
+      break;
+    }
+  }
+
+  return sol;
+
+}
 
 int main(int argc, char **argv)
 {

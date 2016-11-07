@@ -176,9 +176,11 @@ int gauss(TMatrixD &M) {
 
 
 
-TVectorD* getx(TMatrixD *A, TVectorD *b) {
+TVectorD* getx(TMatrixD *A, TVectorD *b, bool g = true) {
   TMatrixD *M = add_b(A,b);
-  gauss(*M);
+  if (g) {
+    gauss(*M);
+  }
   M->Print();
   size_t rows = M->GetNrows();
   size_t cols = M->GetNcols();
@@ -203,7 +205,7 @@ TMatrixD* getLk(TMatrixD *A, size_t k) {
       if (i == j) {
         (*L)[i][j] = 1.;
       }
-      if (k == j && j > i) {
+      if (k == j && i > j) {
         (*L)[i][j] = - (*A)[i][j]/(*A)[j][j];
       }
     }
@@ -315,7 +317,10 @@ int main(int argc, char **argv)
     TMatrixD* tempM = MLA[i];
     *L *= (-1.* (*tempM) +2. * (*unity));
   }
+  U->Print();
   L->Print();
+
+
 
   return 1;
 }
