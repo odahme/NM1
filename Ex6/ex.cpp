@@ -18,6 +18,7 @@ TVectorD* getx(TMatrixD *A, TVectorD *b) {
   TMatrixD U(nrows,ncols);
   TMatrixD D(nrows,ncols);
   TVectorD *sol = new TVectorD(nrows);
+  double r = 0;
 
   for (size_t i = 0; i < nrows; i++) {
     for (size_t j = 0; j < ncols; j++) {
@@ -58,9 +59,44 @@ TVectorD* getx(TMatrixD *A, TVectorD *b) {
       break;
     }
   }
-
   return sol;
+}
 
+TVectorD* getxGS(TMatrixD *A, TVectorD *b) {
+  size_t nrows = A->GetNrows();
+  size_t ncols = A->GetNcols();
+  TVectorD *sol = new TVectorD(nrows);
+
+  double epsilon = 1e-5;
+  for (size_t x = 0; x < 1000000; x++) {
+    unsigned int delta = 0;
+    TVectorD xk(nrows);
+    xk = (*sol);
+    for (size_t i = 0; i < nrows; i++) {
+      double temp1 = 0;
+      double temp2 = 0;
+
+      for (size_t j = 0; j < ncols; j++) {
+        if (j < i) {
+          temp1 += (*A)[i][j]* (*sol)[j];
+        }
+        if (j>i) {
+          temp2 += (*A)[i][j] * xk[j];
+        }
+      }
+      (*sol)[i] = 1./(*A)[i][i] * ( (*b)[i] - temp1 - temp2);
+    }
+    for (size_t i = 0; i < nrows; i++) {
+      if (abs( (*sol)[i] - xk[i]) < epsilon) {
+        delta++;
+      }
+    }
+    if (delta == nrows) {
+      break;
+      std::cout << "/* message */" << std::endl;
+    }
+  }
+  return sol;
 }
 
 int main(int argc, char **argv)
@@ -76,7 +112,6 @@ int main(int argc, char **argv)
   TCanvas c1("c1","c1",1,1,1024,768);
 
   TMatrixD *A = new TMatrixD(10,10);
-  A->Print();
   TVectorD *b = new TVectorD(10);
 
   ifstream inputstream ("A_Matrix.txt",ios::in);
@@ -94,10 +129,7 @@ int main(int argc, char **argv)
     double val10;
     string buffer;
     getline(inputstream,buffer);
-    std::cout << "A11 = "<< (*A)[1][1] << std::endl;
     while(inputstream >> val1 >> val2 >> val3 >> val4 >> val5 >> val6 >> val7 >> val8 >> val9 >> val10 || row != 10 ) {
-      std::cout << "val1 = "<< val1 << std::endl;
-      std::cout << "row = "<< row << std::endl;
       (*A)[row][0] = val1;
       (*A)[row][1] = val2;
       (*A)[row][2] = val3;
@@ -140,7 +172,7 @@ int main(int argc, char **argv)
   //A->Print();
   //TMatrixD *M = add_b(A,b);
   //M->Print();
-  TVectorD *x = getx(A,b);
+  TVectorD *x = getxGS(A,b);
   x->Print();
 
 
