@@ -93,7 +93,42 @@ TVectorD* getxGS(TMatrixD *A, TVectorD *b) {
     }
     if (delta == nrows) {
       break;
-      std::cout << "/* message */" << std::endl;
+    }
+  }
+  return sol;
+}
+
+TVectorD* getxGSover(TMatrixD *A, TVectorD *b, double w) {
+  size_t nrows = A->GetNrows();
+  size_t ncols = A->GetNcols();
+  TVectorD *sol = new TVectorD(nrows);
+
+  double epsilon = 1e-5;
+  for (size_t x = 0; x < 1000000; x++) {
+    unsigned int delta = 0;
+    TVectorD xk(nrows);
+    xk = (*sol);
+    for (size_t i = 0; i < nrows; i++) {
+      double temp1 = 0;
+      double temp2 = 0;
+
+      for (size_t j = 0; j < ncols; j++) {
+        if (j < i) {
+          temp1 += (*A)[i][j]* (*sol)[j];
+        }
+        if (j>=i) {
+          temp2 += (*A)[i][j] * xk[j];
+        }
+      }
+      (*sol)[i] = xk[i] + w/(*A)[i][i] * ( (*b)[i] - temp1 - temp2);
+    }
+    for (size_t i = 0; i < nrows; i++) {
+      if (abs( (*sol)[i] - xk[i]) < epsilon) {
+        delta++;
+      }
+    }
+    if (delta == nrows) {
+      break;
     }
   }
   return sol;
@@ -172,13 +207,19 @@ int main(int argc, char **argv)
   //A->Print();
   //TMatrixD *M = add_b(A,b);
   //M->Print();
-  TVectorD *x = getxGS(A,b);
-  x->Print();
 
 
-
-
-
+  for (size_t i = 0; i < 11; i++) {
+    double w = 0.2 + 1.3*i/10.;
+    std::cout << "w = "<< w << std::endl;
+    clock_t start, end;
+    start = clock();
+    TVectorD *x = getxGSover(A,b,w);
+    end = clock();
+    // cout << start << endl;
+    // cout << end << ':' << CLOCKS_PER_SEC << endl;
+    std::cout << "used time: "<< (end - start) << std::endl;
+  }
 
   return 1;
 }
