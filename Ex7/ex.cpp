@@ -78,6 +78,21 @@ int main(int argc, char **argv)
   //   }
   //create a window
   double trap = trapezoid(0,5.);
+  double a = 0;
+  double b = 5;
+  double trap_seg = 0;
+  double sim_seg = 0;
+  double sim2_seg = 0;
+  size_t n = 1000;
+  double h = abs((b-a)/n);
+  for (size_t i = 0; i < n; i++) {
+    double x0 = i*h;
+    double x1 = h + i*h;
+    trap_seg += trapezoid(x0,x1);
+    sim_seg+= simpson(x0,x1);
+    sim2_seg+= simpson2(x0,x1);
+  }
+
   double trap_err = trapezoid_err(0,5);
   double sim = simpson(0,.5);
   double sim_err = simpson_err(0,5);
@@ -85,8 +100,11 @@ int main(int argc, char **argv)
   double sim2_err = simpson2_err(0,5);
   std::cout << "1. Newton-Cotes formulas" << std::endl;
   std::cout << "trapezoid = "<< trap << " +- "<< trap_err << std::endl;
+  std::cout << "trapezoid_seg = "<< trap_seg <<" for "<<n<<" steps" << std::endl;
   std::cout << "simpson = "<< sim<< " +- "<< sim_err << std::endl;
+  std::cout << "sim_seg = "<< sim_seg <<" for "<<n<<" steps" << std::endl;
   std::cout << "simpson 3/8 = "<< sim2 << " +- "<< sim2_err << std::endl;
+  std::cout << "sim2_seg = "<< sim2_seg <<" for "<<n<<" steps" << std::endl;
   std::cout << "--------------" << std::endl;
   std::cout << "to use gauss quadrature one needs to change the interval to [-1,1]" << std::endl;
   double gaus_leg = gauss_leg_quad(0,5.);

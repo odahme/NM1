@@ -11,7 +11,7 @@
 #include "fstream"
 #include "TGraph.h"
 #include "TGraphErrors.h"
-#include "TF1.h"
+#include "TF2.h"
 using namespace std;
 
 double f(double x, double y) {
@@ -86,7 +86,7 @@ TGraphErrors* solve_diff(double under, double upper, double yn, size_t n = 0){
     cout << "Unable to open file" << endl;
   }
   const char *c = str.c_str();
-  TF1 *fa = new TF1("fa",c,under,upper);
+  TF2 *fa = new TF2("fa",c,under,upper);
 
 
   if (n == 0) {
@@ -95,28 +95,31 @@ TGraphErrors* solve_diff(double under, double upper, double yn, size_t n = 0){
     std::vector<double> exAd;
     std::vector<double> eyAd;
     std::vector<double> hAd;
-    double h = 0.0001;
+    double h = 0.1;
     size_t i =0;
     double xn = under;
     double x0 = under;
     while (xn < upper) {
-      yn = get_next_y(B,fa,yn,x0,h);
-      dy = abs(yn - get_next_y(A,fa,yn,x0,h));
-      xAd.push_back(x0 + h);
-      x0 += h;
-      hAd.push_back(h);
-      yAd.push_back(yn);
-      exAd.push_back(0);
-      eyAd.push_back(dy);
+      double ytemp = yn;
+      yn = get_next_y(B,fa,ytemp,x0,h);
+      dy = abs(yn - get_next_y(A,fa,ytemp,x0,h));
+
       if (dy > pow(10,-4)) {
         h = 0.9*pow(pow(10,-4)/dy,1./3.)*h;
+        yn = ytemp;
+      }else{
+        xAd.push_back(x0 + h);
+        x0 += h;
+        hAd.push_back(h);
+        yAd.push_back(yn);
+        exAd.push_back(0);
+        eyAd.push_back(dy);
+        if (dy < pow(10,-5)) {
+          h = 1.1*pow(pow(10,-5)/dy,1./3.)*h;
+        }
+        i++;
+        xn = x0;
       }
-      if (dy < pow(10,-5)) {
-        h = 1.1*pow(pow(10,-5)/dy,1./3.)*h;
-      }
-      i++;
-      xn = x0;
-      std::cout << "i,xn = "<< i<<" , "<<xn << std::endl;
     }
     double x[i+1];
     x[0] = x00;
@@ -154,14 +157,13 @@ TGraphErrors* solve_diff(double under, double upper, double yn, size_t n = 0){
       dy = abs(yn - get_next_y(A,fa,yn,x0,h));
       (*x)[i+1] = x0 + h;
       (*y)[i+1] = yn;
-      std::cout << yn << std::endl;
       (*ex)[i+1] = 0;
       (*ey)[i+1] = dy;
     }
-    TGraphErrors *gr = new TGraphErrors(*x,*y,*ex,*ey);
+    TGraphErrors *gr = new TGraphErrors(*x,*ey,*ex,*ex);
 
+    yn = exp(-2);
     for (size_t i = 0; i < 10; i++) {
-      double y0 = exp(-2);
       double x0 = 0;
       double h = 0.01 + 0.01*i;
       yn = get_next_y(B,fa,yn,x0,h);
