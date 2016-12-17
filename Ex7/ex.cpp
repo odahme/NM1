@@ -27,7 +27,7 @@ double trapezoid_err(double a,double b) {
 }
 
 double simpson(double a, double b) {
-  double calc = (b-a)/6. * (f(a)+4*f((b-a)/2)+f(b));
+  double calc = (b-a)/6. * (f(a)+4*f((b+a)*0.5)+f(b));
   return calc;
 }
 
@@ -37,7 +37,7 @@ double simpson_err(double a, double b){
 }
 
 double simpson2(double a, double b) {
-  double calc = (b-a)/90. * (7*f(a)+32*f((b-a)/4)+12*f((b-a)/2)+32*f(3*(b-a)/4)+7*f(b));
+  double calc = (b-a)/90. * (7*f(a)+32*f(a+(b-a)/4)+12*f((b+a)/2)+32*f(a+3*(b-a)/4)+7*f(b));
   return calc;
 }
 

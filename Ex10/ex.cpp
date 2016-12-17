@@ -208,8 +208,8 @@ int main(int argc, char **argv)
     (*A)[N-2][N-2] = pow(h,-2) - pow(h,-1) + 25;
     (*b)[N-2] = -yn*pow(h,-2);
 
-    A->Print();
-    b->Print();
+    // A->Print();
+    // b->Print();
   }
 
 
